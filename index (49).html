@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversation Class · Term IV Final Exam</title>
+<style>
+  :root{
+    --purple:#5b2c91; --purple-dark:#3d1d63; --purple-light:#7e4cc4;
+    --lilac:#f3edfb; --lilac-mid:#e4d6f7; --gold:#f5b921;
+    --ink:#2b2440; --muted:#6b6480; --good:#1f9d57; --bad:#d64545;
+    --card:#ffffff; --line:#e0d4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(150deg,#ede4fb 0%,#f7f3fc 55%,#fdf6e9 100%);
+    color:var(--ink);min-height:100vh;padding:24px 14px;line-height:1.6;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  .card{
+    background:var(--card);border-radius:20px;padding:32px 30px;
+    box-shadow:0 14px 40px rgba(61,29,99,.14);border:1px solid var(--line);
+  }
+  .screen{display:none;}
+  .screen.active{display:block;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .brand{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--purple-light);font-weight:700;margin-bottom:6px;}
+  h1{font-size:1.6rem;color:var(--purple-dark);line-height:1.25;margin-bottom:4px;}
+  .sub{color:var(--muted);font-size:.95rem;margin-bottom:22px;}
+  h2{font-size:1.15rem;color:var(--purple-dark);margin-bottom:4px;
+    display:flex;align-items:center;gap:9px;}
+  .tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--lilac-mid);color:var(--purple);padding:3px 9px;
+    border-radius:20px;font-weight:700;}
+  .tag.exam{background:var(--gold);color:#4a3400;}
+  .intro-note{color:var(--muted);font-size:.9rem;margin:8px 0 18px;}
+
+  .progress{display:flex;gap:6px;margin-bottom:22px;}
+  .progress span{flex:1;height:7px;border-radius:6px;background:var(--lilac-mid);}
+  .progress span.done{background:var(--purple-light);}
+  .progress span.now{background:var(--gold);}
+
+  .passage{background:var(--lilac);border-left:4px solid var(--purple-light);
+    border-radius:0 12px 12px 0;padding:16px 18px;margin:14px 0 20px;font-size:.96rem;}
+  .passage h3{color:var(--purple-dark);font-size:1.02rem;margin-bottom:8px;}
+  .passage p{margin-bottom:10px;}
+  .passage p:last-child{margin-bottom:0;}
+
+  .audiobox{width:100%;border-radius:13px;overflow:hidden;margin:14px 0 8px;
+    border:1px solid var(--line);background:var(--lilac);}
+  .audiobox iframe{width:100%;height:70px;border:0;display:block;}
+  .videolink{display:inline-block;font-size:.86rem;color:var(--purple);
+    font-weight:700;text-decoration:underline;margin-bottom:18px;}
+
+  .q{margin:18px 0;padding-bottom:6px;}
+  .q .qtext{font-weight:600;margin-bottom:10px;}
+  .opt{display:block;border:1.6px solid var(--line);border-radius:11px;
+    padding:11px 14px;margin:7px 0;cursor:pointer;transition:.15s;font-size:.94rem;}
+  .opt:hover{border-color:var(--purple-light);background:var(--lilac);}
+  .opt.sel{border-color:var(--purple);background:var(--lilac-mid);font-weight:600;}
+  .opt.correct{border-color:var(--good);background:#e5f6ec;}
+  .opt.wrong{border-color:var(--bad);background:#fbe7e7;}
+  .opt input{margin-right:9px;}
+
+  .gap{margin:14px 0;font-size:.96rem;}
+  .gap label{font-weight:600;display:block;margin-bottom:6px;}
+  select,input[type=text],textarea{
+    font-family:inherit;font-size:.95rem;width:100%;padding:10px 12px;
+    border:1.6px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);
+  }
+  select:focus,input:focus,textarea:focus{outline:none;border-color:var(--purple-light);}
+  textarea{resize:vertical;min-height:170px;}
+
+  .feedback{margin-top:14px;padding:13px 15px;border-radius:11px;font-size:.92rem;display:none;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:#e5f6ec;color:#176b3d;border:1px solid #b6e2c6;}
+  .feedback.no{background:#fbe7e7;color:#9c2b2b;border:1px solid #f0bcbc;}
+  .feedback.info{background:var(--lilac);color:var(--purple-dark);border:1px solid var(--line);}
+
+  .btn{background:var(--purple);color:#fff;border:none;border-radius:12px;
+    padding:13px 26px;font-size:1rem;font-weight:700;cursor:pointer;
+    transition:.18s;font-family:inherit;margin-top:18px;}
+  .btn:hover{background:var(--purple-dark);transform:translateY(-1px);}
+  .btn.ghost{background:var(--lilac-mid);color:var(--purple-dark);}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;}
+
+  .scorebig{font-size:3rem;font-weight:800;color:var(--purple-dark);text-align:center;}
+  .scoreline{text-align:center;color:var(--muted);margin-bottom:18px;}
+  .breakdown{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;}
+  .breakdown div{display:flex;justify-content:space-between;padding:10px 15px;
+    border-bottom:1px solid var(--line);font-size:.93rem;}
+  .breakdown div:last-child{border-bottom:none;font-weight:700;background:var(--lilac);}
+
+  .checklist{font-size:.88rem;color:var(--muted);margin:8px 0 0;padding-left:18px;}
+  .checklist li{margin:3px 0;}
+  .success{background:#e5f6ec;border:1px solid #b6e2c6;color:#176b3d;
+    border-radius:12px;padding:16px;text-align:center;font-weight:600;display:none;margin-top:16px;}
+  .success.show{display:block;}
+  .tip{font-size:.86rem;color:var(--muted);font-style:italic;margin-top:6px;}
+  .examnote{background:#fff8e6;border:1px solid #f0d99a;color:#6b5410;
+    border-radius:12px;padding:13px 16px;font-size:.9rem;margin:14px 0 6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ CONFIG ============ -->
+<!-- ⚠️ SWAP POINT: if a dedicated Final Exam Google Form is created, replace FORM_URL
+     and every value in ENTRY below with the new form's IDs. Nothing else changes. -->
+<script>
+const CONFIG = {
+  FORM_URL: "https://docs.google.com/forms/d/e/1FAIpQLSftntztcKJlKFeJTtu7CiHniOUFFfGBmRhclyzqz7CGUMwkPQ/formResponse",
+  ENTRY: {
+    studentName:  "entry.154629934",
+    classCode:    "entry.771629595",
+    session:      "entry.1564061356",
+    listening:    "entry.1994438750",
+    vocab:        "entry.1169985852",
+    writing:      "entry.66378887",
+    speaking:     "entry.665897330",
+    grammar:      "entry.1528226896",
+    percent:      "entry.543147037",
+    writingText:  "entry.301386877",
+    aiFeedback:   "entry.1035810181",
+    teacher:      "entry.1451249480"
+  },
+  CLASSES: [
+    {code:"3096", label:"3096 \u2014 Morning (9:00 \u2013 10:30 AM) \u2014 Laura Ebel",   teacher:"Laura Ebel"},
+    {code:"3091", label:"3091 \u2014 Evening (6:30 \u2013 8:00 PM) \u2014 Laura Ebel",   teacher:"Laura Ebel"}
+  ],
+  SESSION_LABEL: "Final Exam"
+};
+/* Exam mode: students do NOT see which answers were right or wrong.
+   Set to true only if you want this to behave like a practice file. */
+const REVEAL_ANSWERS = false;
+</script>
+
+<div class="card">
+
+<!-- ===================== SCREEN 0 — START ===================== -->
+<div class="screen active" id="s0">
+  <div class="brand">English Class · SQA Education</div>
+  <h1>Conversation Final Exam</h1>
+  <div class="sub">Conversation Course · Term IV 2026<br>
+  <strong>Listening · Grammar · Vocabulary · Writing</strong></div>
+
+  <div class="passage" style="border-left-color:var(--gold);">
+    <h3>Before you begin 📋</h3>
+    <p>This exam has <strong>four parts</strong>: a listening passage with 5 questions,
+    8 grammar questions, 12 vocabulary questions, and one piece of writing.</p>
+    <p>The 25 multiple-choice questions are worth <strong>100 points</strong> and are scored
+    automatically. Your writing is graded separately by your teacher using the writing rubric.
+    Your speaking exam is done in class with your teacher.</p>
+    <p><strong>Submit only once.</strong> Nothing is sent until you press Finish at the end,
+    so take your time and check your answers before you get there.</p>
+  </div>
+
+  <div class="gap">
+    <label>First, your name</label>
+    <input type="text" id="studentName" placeholder="Type your full name">
+  </div>
+  <div class="gap">
+    <label>Your class</label>
+    <select id="classSelect"></select>
+  </div>
+  <button class="btn" onclick="go(1)">Start the exam →</button>
+</div>
+
+<!-- ===================== SCREEN 1 — LISTENING ===================== -->
+<div class="screen" id="s1">
+  <div class="progress"><span class="now"></span><span></span><span></span><span></span></div>
+  <h2><span class="tag exam">Part 1 · Listening</span> Setting Up the New Apartment</h2>
+  <div class="intro-note">Listen to the call between the customer and the internet company,
+  then answer the five questions. You may replay the audio as many times as you need.</div>
+
+  <div class="audiobox"><iframe src="https://drive.google.com/file/d/17W1-zzcpwcp9zTesfXLk2HgtAUwDA_UM/preview" allow="autoplay"></iframe></div><a class="videolink" href="https://drive.google.com/file/d/17W1-zzcpwcp9zTesfXLk2HgtAUwDA_UM/view" target="_blank" rel="noopener">Open the audio in a new tab &rarr;</a>
+
+  <div id="listeningQs"></div>
+  <button class="btn" onclick="go(2)">Next: Grammar →</button>
+</div>
+
+<!-- ===================== SCREEN 2 — GRAMMAR ===================== -->
+<div class="screen" id="s2">
+  <div class="progress"><span class="done"></span><span class="now"></span><span></span><span></span></div>
+  <h2><span class="tag exam">Part 2 · Grammar</span> Mini-Dialogues</h2>
+  <div class="intro-note">Eight mini-dialogues. Choose the option that <strong>best completes</strong> each one.</div>
+
+  <div id="grammarQs"></div>
+  <button class="btn" onclick="go(3)">Next: Vocabulary →</button>
+</div>
+
+<!-- ===================== SCREEN 3 — VOCABULARY ===================== -->
+<div class="screen" id="s3">
+  <div class="progress"><span class="done"></span><span class="done"></span><span class="now"></span><span></span></div>
+  <h2><span class="tag exam">Part 3 · Vocabulary</span> Mini-Dialogues</h2>
+  <div class="intro-note">Twelve mini-dialogues. Choose the word or phrase that <strong>best completes</strong> each one.</div>
+
+  <div id="vocabQs"></div>
+  <button class="btn" onclick="go(4)">Next: Writing →</button>
+</div>
+
+<!-- ===================== SCREEN 4 — WRITING ===================== -->
+<div class="screen" id="s4">
+  <div class="progress"><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span></div>
+  <h2><span class="tag exam">Part 4 · Writing</span> Save a Hidden Gem</h2>
+  <div class="intro-note">Write a <strong>persuasive paragraph of 6 to 8 sentences</strong>
+  pitching the saving or preservation of a local hidden gem. It can be a real place or a
+  realistic fictional establishment.</div>
+
+  <div class="passage">
+    <p>🧱 <strong>Adjective order</strong> — Opinion &rarr; Size/Quality &rarr; Age &rarr; Material:<br>
+    &ldquo;a <strong>charming little old brick</strong> bakery&rdquo;</p>
+    <p>❗ <strong>Intensifiers</strong> (use at least two): <em>incredibly, absolutely, remarkably, utterly</em></p>
+    <p>🎯 <strong>What-cleft</strong> (use at least one): &ldquo;<strong>What</strong> makes this place worth saving
+    <strong>is</strong> the owner&rsquo;s homemade bread.&rdquo;</p>
+    <p>📝 <strong>Hidden Gem vocabulary</strong> (use at least two): amenities, best-kept secret,
+    dilapidated, eclectic, hub, obscure, off the beaten path, ordinance, patronize, picturesque,
+    quaint, stumbled upon, unpretentious, vicinity.</p>
+  </div>
+
+  <textarea id="writingText" placeholder="There is an absolutely charming little old brick caf&eacute; on the corner of my street that the city is planning to tear down &hellip;"></textarea>
+  <ul class="checklist">
+    <li>One paragraph, 6&ndash;8 sentences</li>
+    <li>Correct adjective order (Opinion → Size/Quality → Age → Material)</li>
+    <li>At least 2 intensifiers</li>
+    <li>At least 1 What-cleft structure</li>
+    <li>At least 2 Hidden Gem vocabulary words</li>
+  </ul>
+  <div class="feedback info" id="writingFb"></div>
+  <div class="btnrow">
+    <button class="btn" onclick="saveWriting()">Save my writing</button>
+    <button class="btn ghost" id="writingNext" style="display:none;" onclick="finish()">See my results →</button>
+  </div>
+</div>
+
+<!-- ===================== SCREEN 5 — RESULTS ===================== -->
+<div class="screen" id="s5">
+  <div class="brand">English Class · SQA Education</div>
+  <h1 style="margin-bottom:14px;">Exam complete 🎓</h1>
+  <div class="scorebig" id="finalPct">0%</div>
+  <div class="scoreline" id="finalLine">—</div>
+  <div class="breakdown" id="breakdown"></div>
+  <div class="examnote">
+    ℹ️ This score covers the <strong>25 multiple-choice questions only</strong>.
+    Your <strong>writing</strong> and your <strong>speaking exam</strong> are each graded
+    separately by your teacher, so they are not included in the number above.
+  </div>
+  <p style="font-size:.9rem;color:var(--muted);">Press Finish to send your answers and your
+  writing to your teacher. You only need to do this once.</p>
+  <button class="btn" id="finishBtn" onclick="submitAll()">Finish →</button>
+  <div class="success" id="successMsg">✓ Sent! Your final exam has been submitted. You can close this page.</div>
+</div>
+
+</div>
+<div style="text-align:center;color:var(--muted);font-size:.8rem;margin-top:16px;">
+  SQA Education · Conversation Course · Term IV 2026
+</div>
+</div>
+
+<iframe name="sqa_sink" style="display:none;"></iframe>
+
+<script>
+/* ---------- labels ---------- */
+const LISTENING_LABEL="Listening comprehension";
+const GRAMMAR_LABEL="Grammar";
+const VOCAB_LABEL="Vocabulary";
+
+/* ---------- PART 1 — LISTENING (Q1-5) ---------- */
+const listeningBank=[
+ {
+  "q": "1. Why is the customer particularly concerned about their internet setup?",
+  "opts": [
+   "They want to upgrade to a premium service tier.",
+   "They work from home and require a continuous connection.",
+   "They are worried about a major billing discrepancy.",
+   "They dislike using autonomous account management tools."
+  ],
+  "answer": 1
+ },
+ {
+  "q": "2. What issue did the customer service representative fix during the call?",
+  "opts": [
+   "A late payment that caused the customer to default.",
+   "A database error regarding the new apartment&rsquo;s unit number.",
+   "A physical break in the neighborhood&rsquo;s technological infrastructure.",
+   "A failed security verification on the customer&rsquo;s account."
+  ],
+  "answer": 1
+ },
+ {
+  "q": "3. How will the customer be billed for their old address during the moving month?",
+  "opts": [
+   "They will be charged a standard flat-rate penalty fee.",
+   "Their final balance will be entirely discharged by the company.",
+   "They will receive a prorated invoice for only the days they used.",
+   "They will be forced to pay double for redundant utilities."
+  ],
+  "answer": 2
+ },
+ {
+  "q": "4. What does the customer&rsquo;s choice of service management reveal about them?",
+  "opts": [
+   "They prefer speaking with customer support agents over navigating online systems.",
+   "They plan to upgrade to the premium service tier as soon as they log into the portal.",
+   "They appreciate having direct control over their account without needing to call in.",
+   "They find the logistical aspects of digital account management overwhelming."
+  ],
+  "answer": 2
+ },
+ {
+  "q": "5. What does the representative imply about the activation process on move-in day?",
+  "opts": [
+   "The internet will be working automatically by the time the customer arrives.",
+   "The customer must wait at home for a technician to activate the software.",
+   "The automated system often fails and requires manual human oversight.",
+   "There will be a brief, unavoidable delay while the system resets."
+  ],
+  "answer": 0
+ }
+];
+
+/* ---------- PART 2 — GRAMMAR (Q6-13) ---------- */
+const grammarBank=[
+ {
+  "q": "6. <em>Neighbor A:</em> Hey Marcus! I haven&rsquo;t caught you here at the gym in a couple of weeks. Have you been traveling?<br><em>Neighbor B:</em> I wish! Honestly, I ________ extra shifts at the hospital lately to cover for a colleague, so I&rsquo;ve basically just been sleeping and working.",
+  "opts": ["take","have been taking","will have taken","am taken"],
+  "answer": 1
+ },
+ {
+  "q": "7. <em>Neighbor A:</em> Hey Sarah! I see they are finally upgrading our building&rsquo;s mailbox security system.<br><em>Neighbor B:</em> It&rsquo;s about time! Seriously, nobody should have to worry about their private mail being vulnerable like that, ________?",
+  "opts": ["shouldn&rsquo;t they","should they","shouldn&rsquo;t we","should we"],
+  "answer": 1
+ },
+ {
+  "q": "8. <em>Parent:</em> Maya seems a little anxious about the upcoming science presentation. I was wondering ________ some extra time to practice her speaking skills during recess?<br><em>Teacher:</em> That is a wonderful idea! I can absolutely set aside ten minutes during tomorrow&rsquo;s morning break to let her run through her slides with me.",
+  "opts": ["whether she could have","could she have","whether could she have","she could have"],
+  "answer": 0
+ },
+ {
+  "q": "9. <em>Tenant:</em> I&rsquo;m slightly worried about moving our furniture in on Monday morning if the lights aren&rsquo;t working yet.<br><em>Landlord:</em> Rest assured, the electric company confirmed the appointment. By the time the moving truck arrives at your doorstep on Monday, they ________ the entire power grid for the apartment.",
+  "opts": ["will activate","will have been activating","are going to activate","will have activated"],
+  "answer": 3
+ },
+ {
+  "q": "10. <em>E-commerce Consultant:</em> If you want to increase your digital download sales, you should suggest a matching template bundle right before checkout.<br><em>Digital Artist:</em> Good point. ________ a complementary asset pack at a discounted price feels like an irresistible upgrade for most buyers.",
+  "opts": ["To offer","Offering","For offering","Offer"],
+  "answer": 1
+ },
+ {
+  "q": "11. <em>Teacher:</em> Leo missed his scheduled presentation slot this morning because he didn&rsquo;t bring his project poster to class.<br><em>Parent:</em> Oh, I am so sorry. He ________ his poster by the front door last night, but he left it on his desk instead.",
+  "opts": ["should pack","must pack","ought to have packed","would be packing"],
+  "answer": 2
+ },
+ {
+  "q": "12. <em>Colleague A:</em> Hey, did you change the access permissions on the shared drive? I can&rsquo;t open the client folders anymore.<br><em>Colleague B:</em> Oh, wow. I ________ accidentally clicked the wrong box when I was updating the security settings yesterday. Let me fix that for you.",
+  "opts": ["must","might have","should have","am supposed to"],
+  "answer": 1
+ },
+ {
+  "q": "13. <em>Traveler A:</em> I thought you loved the crowded night markets in Bangkok, but you spent the whole evening exploring that tiny, quiet alleyway.<br><em>Traveler B:</em> The markets are fun, but ________ captivated me was the absolute stillness of that hidden temple courtyard at midnight.",
+  "opts": ["what it","that which","what","it was what"],
+  "answer": 2
+ }
+];
+
+/* ---------- PART 3 — VOCABULARY (Q14-25) ---------- */
+const vocabBank=[
+ {
+  "q": "14. <em>Speaker A:</em> &ldquo;I joined the local volunteer group last month, and I was worried about fitting in as an immigrant. Surprisingly, the integration process has been entirely effortless.&rdquo;<br><em>Speaker B:</em> &ldquo;That is wonderful to hear! Having a ________ social transition into a new community makes a huge difference when you are building a new life.&rdquo;",
+  "opts": ["frictionless","spontaneous","superficial","insightful"],
+  "answer": 0
+ },
+ {
+  "q": "15. <em>Speaker A:</em> &ldquo;I just received a massive invoice from the laboratory for my routine blood work. I thought our health insurance handled all preventative diagnostic services.&rdquo;<br><em>Speaker B:</em> &ldquo;Let me review the paperwork. It looks like the insurance company issued a formal ________ because the clinic forgot to submit the proper prior authorization paperwork before your appointment.&rdquo;",
+  "opts": ["deductible","premium","denial","coverage"],
+  "answer": 2
+ },
+ {
+  "q": "16. <em>Speaker A:</em> &ldquo;My son is feeling very discouraged because he received a low grade on his history project. He says the grading process wasn&rsquo;t fair.&rdquo;<br><em>Speaker B:</em> &ldquo;Tell him to check the course ________ that the teacher provided. It lays out the exact scoring guide and criteria so students know exactly how their work is evaluated.&rdquo;",
+  "opts": ["PTA","intervention","tardiness","rubric"],
+  "answer": 3
+ },
+ {
+  "q": "17. <em>Speaker A:</em> &ldquo;I noticed that the project guidelines you gave me yesterday completely contradict the instructions that the regional director sent out this morning.&rdquo;<br><em>Speaker B:</em> &ldquo;Oh, thank you for bringing that up. Let me schedule a brief team meeting so we can ________ this confusing situation before anyone spends time doing the wrong work.&rdquo;",
+  "opts": ["convolute","clarify","misinterpret","mutualize"],
+  "answer": 1
+ },
+ {
+  "q": "18. <em>Speaker A:</em> &ldquo;I feel terrible. I accidentally sent out the old financial draft to our new corporate clients, and now our figures look completely wrong.&rdquo;<br><em>Speaker B:</em> &ldquo;Don&rsquo;t panic. Errors happen to everyone. The best thing you can do right now is act quickly and professionally to ________ the mistake by sending over the corrected file.&rdquo;",
+  "opts": ["rectify","advocate","touch base","convolute"],
+  "answer": 0
+ },
+ {
+  "q": "19. <em>Speaker A:</em> &ldquo;We are looking for a new apartment, but we want somewhere very lively. We love being around crowds, local events, and energetic street life.&rdquo;<br><em>Speaker B:</em> &ldquo;In that case, you should look for a home downtown. It is an incredibly ________ district full of constant commercial activity and cultural energy.&rdquo;",
+  "opts": ["secluded","obscure","bustling","dilapidated"],
+  "answer": 2
+ },
+ {
+  "q": "20. <em>Speaker A:</em> &ldquo;Are there any good dining options around our new office building? I walked around the block and didn&rsquo;t see anything.&rdquo;<br><em>Speaker B:</em> &ldquo;Yes! If you explore the immediate ________, there are actually several excellent family-owned restaurants hidden away on the back streets.&rdquo;",
+  "opts": ["vicinity","hub","establishment","amenities"],
+  "answer": 0
+ },
+ {
+  "q": "21. <em>Speaker A:</em> &ldquo;My internet service was completely down for four full days during my move, but my monthly bill shows that I am still being charged the full regular price.&rdquo;<br><em>Speaker B:</em> &ldquo;You should call their billing department. They are supposed to issue a ________ bill that only calculates costs proportionally for the exact days your service was working.&rdquo;",
+  "opts": ["redundant","uninterrupted","prorated","autonomous"],
+  "answer": 2
+ },
+ {
+  "q": "22. <em>Speaker A:</em> &ldquo;I am trying to log into my online utility account from my laptop, but it keeps giving me an error screen and asking me to upload a photo of my driver&rsquo;s license.&rdquo;<br><em>Speaker B:</em> &ldquo;That is just a standard security ________ step. They must establish the true validity of your identity to protect your personal account information.&rdquo;",
+  "opts": ["verification","oversight","hurdle","compounded"],
+  "answer": 0
+ },
+ {
+  "q": "23. <em>Speaker A:</em> &ldquo;The freelance marketing contract we signed says we are only responsible for designing 3 social media graphics, but the client just asked us to write a full blog post too.&rdquo;<br><em>Speaker B:</em> &ldquo;Be careful. That request definitely ________ the agreed boundaries of our project, and we should charge an extra fee if they want us to do it.&rdquo;<br><em>Speaker A:</em> &ldquo;Agreed. We need to prevent any further scope creep before it damages our timeline.&rdquo;",
+  "opts": ["leaves money on the table","falls outside","opts-in","addresses a concern"],
+  "answer": 1
+ },
+ {
+  "q": "24. <em>Speaker A:</em> &ldquo;The landlord wants to increase our monthly rent by $200 next year, but the building&rsquo;s physical structure is aging, and the laundry room appliances are completely broken.&rdquo;<br><em>Speaker B:</em> &ldquo;That is unfair. We need to actively ________ for ourselves as tenants. Let&rsquo;s write a formal letter together stating that we will only accept a rent increase if they repair the community amenities.&rdquo;",
+  "opts": ["patronize","advocate","reciprocate","synchronize"],
+  "answer": 1
+ },
+ {
+  "q": "25. <em>Speaker A:</em> &ldquo;I am looking at this new software subscription for my small business, but the basic option doesn&rsquo;t include phone support or data security features.&rdquo;<br><em>Speaker B:</em> &ldquo;If you want those advanced security features, you will need to upgrade to their premium service ________. It costs a bit more per month, but it is the only plan that includes full tech support.&rdquo;",
+  "opts": ["deliverable","project scope","retainer","tier"],
+  "answer": 3
+ }
+];
+
+/* ---------- state ---------- */
+const STATE={listening:0,grammar:0,vocab:0,writingText:""};
+/* 4 points per question: 5 listening, 8 grammar, 12 vocabulary = 100 */
+const MAX={listening:20,grammar:32,vocab:48};
+const TOTAL=100;
+
+/* ---------- class sections ---------- */
+(function(){
+  const sel=document.getElementById('classSelect');
+  CONFIG.CLASSES.forEach((c,i)=>{
+    const o=document.createElement('option');
+    o.value=i;o.textContent=c.label;sel.appendChild(o);
+  });
+})();
+
+/* ---------- navigation ---------- */
+function go(n){
+  if(n===1){
+    const nm=document.getElementById('studentName').value.trim();
+    if(!nm){alert('Please type your name first.');return;}
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- shared MCQ renderer ---------- */
+function renderMCQ(bank,containerId,prefix){
+  const c=document.getElementById(containerId);
+  bank.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='q';
+    let h='<div class="qtext">'+item.q+'</div>';
+    item.opts.forEach((o,j)=>{
+      const letter=String.fromCharCode(65+j);
+      h+='<label class="opt" data-q="'+i+'"><input type="radio" name="'+prefix+i+'" value="'+j+'"><strong>'+letter+')</strong> '+o+'</label>';
+    });
+    d.innerHTML=h;c.appendChild(d);
+  });
+  c.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      const qi=opt.dataset.q;
+      c.querySelectorAll('.opt[data-q="'+qi+'"]').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');opt.querySelector('input').checked=true;
+    });
+  });
+}
+function scoreMCQ(bank,containerId,prefix,max){
+  let correct=0;
+  bank.forEach((item,i)=>{
+    const sel=document.querySelector('input[name="'+prefix+i+'"]:checked');
+    const wrap=document.querySelectorAll('#'+containerId+' .q')[i];
+    if(sel){
+      const val=+sel.value;
+      if(val===item.answer)correct++;
+      if(REVEAL_ANSWERS){
+        wrap.querySelectorAll('.opt')[item.answer].classList.add('correct');
+        if(val!==item.answer)wrap.querySelectorAll('.opt')[val].classList.add('wrong');
+      }
+    }
+  });
+  return Math.round(correct/bank.length*max);
+}
+function countUnanswered(bank,prefix){
+  let n=0;
+  bank.forEach((item,i)=>{
+    if(!document.querySelector('input[name="'+prefix+i+'"]:checked'))n++;
+  });
+  return n;
+}
+
+renderMCQ(listeningBank,'listeningQs','L');
+renderMCQ(grammarBank,'grammarQs','G');
+renderMCQ(vocabBank,'vocabQs','V');
+
+/* ===================== PART 4 — WRITING (teacher-graded) ===================== */
+function saveWriting(){
+  const txt=document.getElementById('writingText').value.trim();
+  STATE.writingText=txt;
+  const fb=document.getElementById('writingFb');
+  const words=txt.split(/\s+/).filter(Boolean);
+  const sentences=txt.split(/[.!?]+/).map(s=>s.trim()).filter(Boolean);
+  let msg='<strong>Saved \u2014 your teacher will read and grade this.</strong><br>';
+  msg+='\ud83d\udcdd '+words.length+' words \u00b7 '+sentences.length+' sentences';
+  if(sentences.length<6)msg+='<br>\u26a0\ufe0f The task asks for 6 to 8 sentences \u2014 you have '+sentences.length+'.';
+  else if(sentences.length>8)msg+='<br>\u26a0\ufe0f The task asks for 6 to 8 sentences \u2014 you have '+sentences.length+'.';
+  fb.innerHTML=msg;fb.className='feedback show info';
+  document.getElementById('writingNext').style.display='inline-block';
+}
+
+/* ===================== RESULTS ===================== */
+function finish(){
+  const missing=countUnanswered(listeningBank,'L')
+               +countUnanswered(grammarBank,'G')
+               +countUnanswered(vocabBank,'V');
+  if(missing>0){
+    if(!confirm('You have '+missing+' unanswered question'+(missing===1?'':'s')+
+      '. Unanswered questions score zero. Continue to your results anyway?'))return;
+  }
+  STATE.listening=scoreMCQ(listeningBank,'listeningQs','L',MAX.listening);
+  STATE.grammar  =scoreMCQ(grammarBank,'grammarQs','G',MAX.grammar);
+  STATE.vocab    =scoreMCQ(vocabBank,'vocabQs','V',MAX.vocab);
+  if(!STATE.writingText)STATE.writingText=document.getElementById('writingText').value.trim();
+
+  const total=STATE.listening+STATE.grammar+STATE.vocab;
+  const pct=Math.round(total/TOTAL*100);
+  document.getElementById('finalPct').textContent=pct+'%';
+  document.getElementById('finalLine').textContent=
+    (pct>=90?'Excellent work.':pct>=70?'Strong result.':pct>=50?'Satisfactory \u2014 keep practicing.':'Completed.');
+  const bd=document.getElementById('breakdown');
+  bd.innerHTML=
+    row(LISTENING_LABEL,STATE.listening,MAX.listening)+
+    row(GRAMMAR_LABEL,STATE.grammar,MAX.grammar)+
+    row(VOCAB_LABEL,STATE.vocab,MAX.vocab)+
+    '<div><span>Writing</span><span style="color:var(--purple-light);">graded by teacher</span></div>'+
+    '<div><span>Speaking</span><span style="color:var(--purple-light);">graded in class</span></div>'+
+    row('Multiple-choice total',total,TOTAL);
+  go(5);
+}
+function row(label,got,max){
+  return '<div><span>'+label+'</span><span>'+got+' / '+max+'</span></div>';
+}
+
+/* ===================== SILENT SUBMIT ===================== */
+function submitAll(){
+  const total=STATE.listening+STATE.grammar+STATE.vocab;
+  const pct=Math.round(total/TOTAL*100);
+  const E=CONFIG.ENTRY;
+  const data={};
+  const chosen=CONFIG.CLASSES[+document.getElementById('classSelect').value]||CONFIG.CLASSES[0];
+  data[E.studentName]=document.getElementById('studentName').value.trim();
+  data[E.classCode]=chosen.code;
+  data[E.session]=CONFIG.SESSION_LABEL;
+  data[E.listening]=STATE.listening;
+  data[E.vocab]=STATE.vocab;
+  data[E.grammar]=STATE.grammar;
+  data[E.writing]="";
+  data[E.speaking]="";
+  data[E.percent]=pct;
+  data[E.writingText]=STATE.writingText||'(none)';
+  data[E.aiFeedback]="";
+  data[E.teacher]=chosen.teacher;
+
+  const f=document.createElement('form');
+  f.action=CONFIG.FORM_URL;f.method='POST';f.target='sqa_sink';
+  for(const k in data){
+    const inp=document.createElement('input');
+    inp.type='hidden';inp.name=k;inp.value=data[k];f.appendChild(inp);
+  }
+  document.body.appendChild(f);
+  try{f.submit();}catch(e){}
+  document.getElementById('finishBtn').style.display='none';
+  document.getElementById('successMsg').classList.add('show');
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
